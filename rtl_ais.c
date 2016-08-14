@@ -653,8 +653,9 @@ void rtl_ais_cleanup(struct rtl_ais_context *ctx)
 	rtlsdr_cancel_async(ctx->dev);
         ctx->active = 0;
 
-        pthread_join(ctx->demod_thread, NULL);
         pthread_join(ctx->rtlsdr_thread, NULL);
+        safe_cond_signal(&ctx->ready, &ctx->ready_m);
+        pthread_join(ctx->demod_thread, NULL);
 
 	if (ctx->file != stdout) {
 		if(ctx->file)
@@ -662,7 +663,6 @@ void rtl_ais_cleanup(struct rtl_ais_context *ctx)
 	}
 
 	rtlsdr_cancel_async(ctx->dev);
-	safe_cond_signal(&ctx->ready, &ctx->ready_m);
 	pthread_cond_destroy(&ctx->ready);
 	pthread_mutex_destroy(&ctx->ready_m);
 
